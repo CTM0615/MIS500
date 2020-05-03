@@ -1,0 +1,50 @@
+#Libraries 
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+#Importing in the Dataset
+FIFA_20 <- read_csv("players_20.csv")
+
+#New Table
+ClubSum<- FIFA_20 %>%
+  group_by(club) %>%
+  summarise(N=n(),
+            Min=min(overall),
+            "1st Qu."=quantile(overall, .25),
+            Median=median(overall),
+            Mean=mean(overall),
+            "3rd Qu."=quantile(overall, .75),
+            Max=max(overall))
+ClubSum<-top_n(ClubSum, 26, Mean) 
+ClubSum<-ClubSum[-c(4,14,17,22,24, 25),]
+
+#bar of all teams overall
+barplot(FIFA_20$overall)
+
+#Histogram with normal distribution curve
+hist(FIFA_20$overall, breaks=50, prob=TRUE, main="Normal Curve for Overall Rating Distribution", xlab="Overall")
+curve(dnorm(x, mean=mean(FIFA_20$overall), sd=sd(FIFA_20$overall)), 
+      col="darkblue", lwd=2, add=TRUE, yaxt="n")
+
+#T test for work Rate
+t.test(x=FIFA_20$overall[FIFA_20$work_rate=="High/High"], y=FIFA_20$overall[FIFA_20$work_rate=="Low/Low"], alternative = "greater")
+t.test(x=FIFA_20$overall[FIFA_20$work_rate=="High/High"], y=FIFA_20$overall[FIFA_20$work_rate=="Medium/Medium"], alternative = "greater")
+t.test(x=FIFA_20$overall[FIFA_20$work_rate=="Medium/Medium"], y=FIFA_20$overall[FIFA_20$work_rate=="Low/Low"], alternative = "greater")
+
+#Work Rate Summary Informaiton 
+WorkSum<- FIFA_20 %>%
+  group_by(work_rate) %>%
+  summarize(N=n(), 
+            Min=min(overall),
+            "1st Qu."=quantile(overall, .25),
+            Median=median(overall),
+            Mean=mean(overall),
+            "3rd Qu."=quantile(overall, .75),
+            Max=max(overall))
+
+#Generate club names for top 20
+Clubs<-ClubSum$club
+
+#T test for top Bayern versus other top 20 teams
+t.test(x=FIFA_20$overall[FIFA_20$club=="FC Bayern München"], y=FIFA_20$overall[FIFA_20$club==c(Clubs[-5])],alternative="greater" )
